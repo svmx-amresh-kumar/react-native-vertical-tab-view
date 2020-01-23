@@ -21,6 +21,10 @@ type Props = {
   style?: ViewStyleProp,
 };
 
+const bgStyle = {
+  backgroundColor: 'transparent'
+}
+
 export default class TouchableItem extends React.Component<Props> {
   static defaultProps = {
     pressColor: 'rgba(255, 255, 255, .4)',
@@ -40,7 +44,7 @@ export default class TouchableItem extends React.Component<Props> {
       );
     } else {
       return (
-        <TouchableOpacity {...rest} style={style} activeOpacity={pressOpacity}>
+        <TouchableOpacity {...rest} style={[bgStyle , style]} activeOpacity={pressOpacity}>
           {this.props.children}
         </TouchableOpacity>
       );

@@ -152,6 +152,7 @@ export default class TabViewVertical<T: *> extends React.Component<
     layout: this.state.sceneLayout,
     navigationState: this.props.navigationState,
     jumpTo: this._jumpTo,
+    swipeEnabled: false,
     useNativeDriver: this.props.useNativeDriver === true,
   });
 

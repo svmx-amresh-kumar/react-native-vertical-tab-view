@@ -446,7 +446,6 @@ export default class TabBarVertical<T: *> extends React.Component<
                 (passedTabStyle &&
                   typeof passedTabStyle.height !== 'undefined') ||
                 scrollEnabled === true;
-
               const tabContainerStyle = {};
 
               if (isHeightSet) {

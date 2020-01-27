@@ -9,6 +9,8 @@ import {
   ScrollView,
   Platform,
   I18nManager,
+  TouchableOpacity,
+  Text
 } from 'react-native';
 import TouchableItem from './TouchableItem';
 import type { Scene, SceneRendererProps } from './index';
@@ -16,6 +18,7 @@ import type {
   ViewStyleProp,
   TextStyleProp,
 } from 'react-native/Libraries/StyleSheet/StyleSheet';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 type IndicatorProps<T> = SceneRendererProps<T> & {
   width: number,
@@ -87,6 +90,13 @@ export default class TabBarVertical<T: *> extends React.Component<
       scrollAmount: new Animated.Value(0),
       initialOffset,
     };
+
+    this.leftOffset = new Animated.Value(0);
+    this.leftOffset1 = new Animated.Value(0);
+    this.leftOffset2 = new Animated.Value(0);
+    this.leftOffset3 = new Animated.Value(0);
+    this.labelOpacity = new Animated.Value(1);
+    this.isOpen = true;
   }
 
   componentDidMount() {
@@ -188,7 +198,7 @@ export default class TabBarVertical<T: *> extends React.Component<
       return this.props.renderIndicator(props);
     }
     const { width, height, position, navigationState } = props;
-    const translateY = Animated.multiply(
+    const translateY = Animated.add(Animated.multiply(
       Animated.multiply(
         position.interpolate({
           inputRange: [0, navigationState.routes.length - 1],
@@ -198,12 +208,13 @@ export default class TabBarVertical<T: *> extends React.Component<
         height
       ),
       I18nManager.isRTL ? -1 : 1
-    );
+    ), 16);
     return (
       <Animated.View
         style={[
           styles.indicator,
-          { width, transform: [{ translateY }] },
+          {transform: [{ translateY }] },
+          {height: height - 30, width:2},
           this.props.indicatorStyle,
         ]}
       />
@@ -348,6 +359,77 @@ export default class TabBarVertical<T: *> extends React.Component<
     this._isManualScroll = false;
   };
 
+  _onMenuButtonPress = () =>{
+    console.log("Menu Button Pressed")
+    
+    this.isOpen = !this.isOpen;
+    if(this.isOpen) {
+      Animated.parallel([
+        Animated.timing(this.leftOffset, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.leftOffset1, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.leftOffset2, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.leftOffset3, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.labelOpacity, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+          delay: 80
+        }),
+        
+      ]).start()
+
+      Animated.sequence([
+
+      ]).start
+    }
+    else {
+      Animated.parallel([
+        Animated.timing(this.leftOffset, {
+          toValue: -140,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(this.leftOffset1, {
+          toValue: 140,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.leftOffset2, {
+          toValue: 140,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.leftOffset3, {
+          toValue: 140,
+          duration: 200,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.labelOpacity, {
+          toValue: 0,
+          duration: 100,
+          useNativeDriver: true
+        }),
+        
+      ]).start()
+    }
+  };
+
   render() {
     const { position, navigationState, scrollEnabled, bounces } = this.props;
     const { routes } = navigationState;
@@ -358,9 +440,19 @@ export default class TabBarVertical<T: *> extends React.Component<
     // Prepend '-1', so there are always at least 2 items in inputRange
     const inputRange = [-1, ...routes.map((x, i) => i)];
     const translateY = Animated.multiply(this.state.scrollAmount, -1);
-
+    const animated = { transform: [{ translateX: this.leftOffset }] }
+    const animated1 = { transform: [{ translateX: this.leftOffset1 }] }
+    const animated2 = { transform: [{ translateX: this.leftOffset2 }] }
+    const animated3 = { transform: [{ scaleX: this.labelOpacity }] }
+    const animated4 = { transform: [{ translateX: this.leftOffset3 }] }
+    
     return (
-      <Animated.View style={[styles.tabBar, this.props.style]}>
+      <Animated.View style={[animated, styles.tabBar, this.props.style]}>
+        <Animated.View style={[animated1, styles.menuButton]}>
+          <TouchableOpacity onPress={this._onMenuButtonPress}>
+            <Icon name="navicon" size={20} color="#fff" />
+          </TouchableOpacity>
+          </Animated.View>
         <Animated.View
           pointerEvents="none"
           style={[
@@ -368,9 +460,10 @@ export default class TabBarVertical<T: *> extends React.Component<
             scrollEnabled
               ? { height: tabHeight, transform: [{ translateY }] }
               : null,
+              animated4
           ]}
         >
-          {this._renderIndicator({
+           {this._renderIndicator({
             ...this.props,
             width: tabWidth,
             height: tabHeight,
@@ -494,10 +587,17 @@ export default class TabBarVertical<T: *> extends React.Component<
                         tabStyle,
                         passedTabStyle,
                         styles.container,
+                        // {backgroundColor:'red'}
                       ]}
                     >
-                      {icon}
-                      {label}
+                      <View style={{flexDirection:"row"}}>
+                        <Animated.View style={[animated2, {flex:0.3}]}>
+                          {icon}
+                        </Animated.View>
+                        <Animated.View style={[animated3,{flex:1}]}>
+                          {label}
+                        </Animated.View>
+                      </View>
                     </Animated.View>
                     {badge ? (
                       <Animated.View
@@ -530,7 +630,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#2196f3',
     elevation: 4,
-    flexDirection: 'row',
+    flexDirection: 'column',
     shadowColor: 'black',
     shadowOpacity: 0.1,
     shadowRadius: StyleSheet.hairlineWidth,
@@ -568,11 +668,15 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   indicator: {
-    backgroundColor: '#ffeb3b',
+    backgroundColor: '#ffffff',
     position: 'absolute',
     left: 0,
     bottom: 0,
     right: 0,
     height: 2,
   },
+  menuButton: {
+    paddingTop: 10,
+    paddingLeft: 10
+  }
 });

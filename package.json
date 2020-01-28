@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/DaKaZ/react-native-vertical-tab-view.git#readme",
   "dependencies": {
+    "prop-types": "^15.7.2",
     "react-native-tab-view": "^1.0.2"
   },
   "devDependencies": {

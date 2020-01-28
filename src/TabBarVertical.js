@@ -91,11 +91,11 @@ export default class TabBarVertical<T: *> extends React.Component<
       initialOffset,
     };
 
-    this.leftOffset = new Animated.Value(0);
-    this.leftOffset1 = new Animated.Value(0);
-    this.leftOffset2 = new Animated.Value(0);
-    this.leftOffset3 = new Animated.Value(0);
-    this.labelOpacity = new Animated.Value(1);
+    this.containerLeftOffset = new Animated.Value(0);
+    this.navIconLeftOffset = new Animated.Value(0);
+    this.tabIconLeftOffset = new Animated.Value(0);
+    this.indicatorLeftOffset = new Animated.Value(0);
+    this.tabLabelScaling = new Animated.Value(1);
     this.isOpen = true;
   }
 
@@ -359,74 +359,79 @@ export default class TabBarVertical<T: *> extends React.Component<
     this._isManualScroll = false;
   };
 
+  _animationCallback = () => {
+    this._animating = false;
+  }
+
   _onMenuButtonPress = () =>{
-    console.log("Menu Button Pressed")
-    
+    if(this._animating) {
+      return;
+    }
+    this._animating = true;
     this.isOpen = !this.isOpen;
+    const animationDuration = this.props.animationDuration || 250;
+    console.log(animationDuration);
     if(this.isOpen) {
       Animated.parallel([
-        Animated.timing(this.leftOffset, {
+        Animated.timing(this.containerLeftOffset, {
           toValue: 0,
-          duration: 200,
-          useNativeDriver: true
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset1, {
+        Animated.timing(this.navIconLeftOffset, {
           toValue: 0,
-          duration: 200,
-          useNativeDriver: true
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset2, {
+        Animated.timing(this.tabIconLeftOffset, {
           toValue: 0,
-          duration: 200,
-          useNativeDriver: true
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset3, {
+        Animated.timing(this.indicatorLeftOffset, {
           toValue: 0,
-          duration: 200,
-          useNativeDriver: true
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.labelOpacity, {
+        Animated.timing(this.tabLabelScaling, {
           toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-          delay: 80
+          duration: animationDuration/2,
+          useNativeDriver,
+          delay: animationDuration/2 - 20
         }),
         
-      ]).start()
-
-      Animated.sequence([
-
-      ]).start
+      ]).start(this._animationCallback)
     }
     else {
+      const tabWidth = this._getTabWidth(this.props);
+      const toOffset = this.props.drawerClosedWidth ? (tabWidth - this.props.drawerClosedWidth): 135;
       Animated.parallel([
-        Animated.timing(this.leftOffset, {
-          toValue: -140,
-          duration: 200,
-          useNativeDriver: true,
+        Animated.timing(this.containerLeftOffset, {
+          toValue: -toOffset,
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset1, {
-          toValue: 140,
-          duration: 200,
-          useNativeDriver: true
+        Animated.timing(this.navIconLeftOffset, {
+          toValue: toOffset,
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset2, {
-          toValue: 140,
-          duration: 200,
-          useNativeDriver: true
+        Animated.timing(this.tabIconLeftOffset, {
+          toValue: toOffset,
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.leftOffset3, {
-          toValue: 140,
-          duration: 200,
-          useNativeDriver: true
+        Animated.timing(this.indicatorLeftOffset, {
+          toValue: toOffset,
+          duration: animationDuration,
+          useNativeDriver
         }),
-        Animated.timing(this.labelOpacity, {
+        Animated.timing(this.tabLabelScaling, {
           toValue: 0,
-          duration: 100,
-          useNativeDriver: true
+          duration: animationDuration/2,
+          useNativeDriver
         }),
-        
-      ]).start()
+      ]).start(this._animationCallback)
     }
   };
 
@@ -440,17 +445,17 @@ export default class TabBarVertical<T: *> extends React.Component<
     // Prepend '-1', so there are always at least 2 items in inputRange
     const inputRange = [-1, ...routes.map((x, i) => i)];
     const translateY = Animated.multiply(this.state.scrollAmount, -1);
-    const animated = { transform: [{ translateX: this.leftOffset }] }
-    const animated1 = { transform: [{ translateX: this.leftOffset1 }] }
-    const animated2 = { transform: [{ translateX: this.leftOffset2 }] }
-    const animated3 = { transform: [{ scaleX: this.labelOpacity }] }
-    const animated4 = { transform: [{ translateX: this.leftOffset3 }] }
+    const animatedContainer = { transform: [{ translateX: this.containerLeftOffset }] }
+    const animatedNavIcon = { transform: [{ translateX: this.navIconLeftOffset }] }
+    const animatedIcon = { transform: [{ translateX: this.tabIconLeftOffset }] }
+    const animatedLabelScaling = { transform: [{ scaleX: this.tabLabelScaling }] }
+    const animatedIndicator = { transform: [{ translateX: this.indicatorLeftOffset }] }
     
     return (
-      <Animated.View style={[animated, styles.tabBar, this.props.style]}>
-        <Animated.View style={[animated1, styles.menuButton]}>
+      <Animated.View style={[animatedContainer, styles.tabBar, this.props.style]}>
+        <Animated.View style={[animatedNavIcon, styles.menuButton]}>
           <TouchableOpacity onPress={this._onMenuButtonPress}>
-            <Icon name="navicon" size={20} color="#fff" />
+            <Icon name="navicon" size={20} color="#000" />
           </TouchableOpacity>
           </Animated.View>
         <Animated.View
@@ -460,7 +465,7 @@ export default class TabBarVertical<T: *> extends React.Component<
             scrollEnabled
               ? { height: tabHeight, transform: [{ translateY }] }
               : null,
-              animated4
+              animatedIndicator
           ]}
         >
            {this._renderIndicator({
@@ -587,14 +592,14 @@ export default class TabBarVertical<T: *> extends React.Component<
                         tabStyle,
                         passedTabStyle,
                         styles.container,
-                        // {backgroundColor:'red'}
                       ]}
                     >
                       <View style={{flexDirection:"row"}}>
-                        <Animated.View style={[animated2, {flex:0.3}]}>
+                        {icon? (<Animated.View style={[animatedIcon, {flex:0.3}]}>
                           {icon}
-                        </Animated.View>
-                        <Animated.View style={[animated3,{flex:1}]}>
+                        </Animated.View>):null
+                        }
+                        <Animated.View style={[animatedLabelScaling,{flex:1}]}>
                           {label}
                         </Animated.View>
                       </View>
@@ -639,6 +644,7 @@ const styles = StyleSheet.create({
     },
     // We don't need zIndex on Android, disable it since it's buggy
     zIndex: Platform.OS === 'android' ? 0 : 1,
+    paddingLeft: 5,
   },
   tabContent: {
     flexDirection: 'column',
@@ -663,7 +669,7 @@ const styles = StyleSheet.create({
   indicatorContainer: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    left: 4,
     right: 0,
     bottom: 0,
   },
